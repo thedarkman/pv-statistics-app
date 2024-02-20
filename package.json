@@ -1,0 +1,28 @@
+{
+  "name": "victron-statistics",
+  "version": "1.0.0",
+  "description": "Collects minimalistic PV data from Victron VRM and shows it as table",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "module",
+  "author": "the_darkman",
+  "license": "ISC",
+  "dependencies": {
+    "cookie-parser": "^1.4.6",
+    "date-fns": "^3.3.1",
+    "dateformat": "^4.6.3",
+    "dotenv": "^16.4.1",
+    "express": "^4.18.2",
+    "express-session": "^1.18.0",
+    "html-entities": "^2.4.0",
+    "node-fetch": "^3.3.2",
+    "sqlite3": "^5.1.7"
+  },
+  "prettier": {
+    "tabWidth": 4,
+    "trailingComma": "none",
+    "printWidth": 120
+  }
+}

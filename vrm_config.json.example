@@ -1,0 +1,17 @@
+{
+  "title": "<page-title>",
+  "type": "vrm",
+  "idSite": <site-id-from-portal-url>,
+  "charger": [
+    {
+      "instance": 0,
+      "name": "<readable-name>",
+      "mppts": 1
+    },
+    {
+      "instance": 1,
+      "name": "<readable-name>",
+      "mppts": 2
+    }
+  ]
+}
