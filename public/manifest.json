@@ -1,0 +1,20 @@
+{
+    "name": "Victron Statistics",
+    "short_name": "Victron Statistics",
+    "start_url": ".",
+    "icons": [
+        {
+            "src": "img/icon_512x512.png",
+            "type": "image/png",
+            "sizes": "512x512"
+        },
+        {
+            "src": "img/icon_192x192.png",
+            "type": "image/png",
+            "sizes": "192x192"
+        }
+    ],
+    "theme_color": "#136F86FF",
+    "background_color": "#136F86FF",
+    "display": "standalone"
+}

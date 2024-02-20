@@ -1,0 +1,29 @@
+.container {
+    margin-top: env(titlebar-area-height, 33px);
+}
+
+table, tr, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+thead {
+    font-weight: bold;
+    font-size: larger;
+    text-align: center;
+}
+
+thead td {
+    vertical-align: top;
+    padding: 3px;
+}
+
+thead .smaller {
+    font-size: smaller;
+    font-weight: normal;
+}
+
+td.kwh,
+td.right {
+    text-align: right;
+}
