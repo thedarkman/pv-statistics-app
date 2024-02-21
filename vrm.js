@@ -7,22 +7,14 @@ import Logger from "./logging.cjs";
 import fetch from "node-fetch";
 import dateformat from "dateformat";
 import { encode } from "html-entities";
-import {
-    endOfISOWeek,
-    endOfMonth,
-    startOfISOWeek,
-    startOfMonth,
-    subDays,
-    subMonths,
-} from "date-fns";
+
+import { getStartAndEndFromInterval, dateMask } from "./helper.js";
 import config from "./config.json" assert { type: "json" };
 
 const log = new Logger("api");
 
 const baseUrl = "https://vrmapi.victronenergy.com/v2";
 const authUrl = `${baseUrl}/auth/login`;
-
-const dateMask = "yyyy-mm-dd";
 
 function valueFromSeries(series) {
     let last = series[series.length - 1];
@@ -43,10 +35,7 @@ function groupSeriesByDay(series) {
 
         if (grouped[day]["value"] === null) return;
 
-        if (
-            grouped[day]["value"] === undefined ||
-            grouped[day]["value"] < current[1]
-        ) {
+        if (grouped[day]["value"] === undefined || grouped[day]["value"] < current[1]) {
             grouped[day]["value"] = current[1];
         }
     });
@@ -69,22 +58,18 @@ class VictronApi {
         let reqData = {
             username,
             password,
-            remember_me: true,
+            remember_me: true
         };
 
         let response = await fetch(authUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(reqData),
+            body: JSON.stringify(reqData)
         });
         let data = await response.json();
         this.token = data.token;
         this.idUser = data.idUser;
-        log.debug(
-            "received valid data for user:",
-            `idUser: ${this.idUser}`,
-            `token: ${this.token}`,
-        );
+        log.debug("received valid data for user:", `idUser: ${this.idUser}`, `token: ${this.token}`);
     }
 
     async fetchInstallations() {
@@ -97,8 +82,8 @@ class VictronApi {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
-                "x-authorization": `Token ${this.accessToken}`,
-            },
+                "x-authorization": `Token ${this.accessToken}`
+            }
         };
 
         let response = await fetch(installUrl, options);
@@ -116,8 +101,8 @@ class VictronApi {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
-                "x-authorization": `Token ${this.accessToken}`,
-            },
+                "x-authorization": `Token ${this.accessToken}`
+            }
         };
         let response = await fetch(systemUrl, options);
         let data = await response.json();
@@ -134,8 +119,8 @@ class VictronApi {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
-                "x-authorization": `Token ${this.accessToken}`,
-            },
+                "x-authorization": `Token ${this.accessToken}`
+            }
         };
 
         let data = [];
@@ -148,7 +133,7 @@ class VictronApi {
             let production = parseFloat(chargerData.records.data["94"].value);
             data.push({
                 name: encode(charger.name, { mode: "nonAscii" }),
-                production,
+                production
             });
             // log.debug(`data for charger '${charger.name}' (instance=${charger.instance}): ${production} kWh`);
         }
@@ -159,38 +144,7 @@ class VictronApi {
     async fetchStats(interval) {
         if (!this.accessToken) return;
 
-        // https://date-fns.org/v3.3.1/docs/startOfWeek
-        // interval: tw | lw | tm | lm
-
-        const now = new Date();
-
-        let start, end;
-        switch (interval) {
-            case "tw":
-                start = startOfISOWeek(now);
-                end = now;
-                break;
-            case "lw":
-                start = startOfISOWeek(now);
-                start = subDays(start, 7);
-                end = endOfISOWeek(start);
-                break;
-            case "tm":
-                start = startOfMonth(now);
-                end = now;
-                break;
-            case "lm":
-                start = startOfMonth(now);
-                start = subMonths(start, 1);
-                end = endOfMonth(start);
-                break;
-        }
-        let formattedStart = dateformat(start, dateMask);
-        let formattedEnd = dateformat(end, dateMask);
-        log.debug("using start:", formattedStart, "and end:", formattedEnd);
-
-        let timeStart = parseInt(start.getTime() / 1000);
-        let timeEnd = parseInt(end.getTime() / 1000);
+        let [timeStart, timeEnd, formattedStart, formattedEnd] = getStartAndEndFromInterval(interval, true);
 
         let data = {};
         for (const charger of config.charger) {
@@ -205,8 +159,8 @@ class VictronApi {
                 headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json, text/plain, */*",
-                    "x-authorization": `Token ${this.accessToken}`,
-                },
+                    "x-authorization": `Token ${this.accessToken}`
+                }
             };
             let response = await fetch(statsUrl, options);
             let stats = await response.json();
@@ -215,11 +169,7 @@ class VictronApi {
             let encodedName = encode(charger.name, { mode: "nonAscii" });
 
             for (let id of ["94", "703", "704"]) {
-                if (
-                    chargerData[id] === undefined ||
-                    chargerData[id].length === 0
-                )
-                    continue;
+                if (chargerData[id] === undefined || chargerData[id].length === 0) continue;
                 let main = groupSeriesByDay(chargerData[id]);
                 for (let day of Object.keys(main)) {
                     if (data[day] === undefined) {
@@ -231,7 +181,7 @@ class VictronApi {
                     data[day][id].push({
                         instance: charger.instance,
                         name: encodedName,
-                        value: main[day].value,
+                        value: main[day].value
                     });
                 }
             }
@@ -240,8 +190,8 @@ class VictronApi {
             rows: data,
             timeframe: {
                 start: formattedStart,
-                end: formattedEnd,
-            },
+                end: formattedEnd
+            }
         };
     }
 }

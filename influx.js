@@ -5,51 +5,20 @@ import Logger from "./logging.cjs";
 import fetch from "node-fetch";
 import dateformat from "dateformat";
 import { encode } from "html-entities";
-import { endOfISOWeek, endOfMonth, startOfISOWeek, startOfMonth, subDays, subMonths } from "date-fns";
+
+import { getStartAndEndFromInterval, dateMask } from "./helper.js";
 import config from "./config.json" assert { type: "json" };
 
 const log = new Logger("influx");
 
 const port = config.port || 8086;
 const baseUrl = `http://${config.host}:${port}/query`;
-const dateMask = "yyyy-mm-dd";
 
 class InfluxApi {
     constructor() {}
 
     async fetchStats(interval) {
-        // https://date-fns.org/v3.3.1/docs/startOfWeek
-        // interval: tw | lw | tm | lm
-
-        const now = new Date(Date.now());
-
-        let start, end;
-        switch (interval) {
-            case "tw":
-                start = startOfISOWeek(now);
-                end = now;
-                break;
-            case "lw":
-                start = startOfISOWeek(now);
-                start = subDays(start, 7);
-                end = endOfISOWeek(start);
-                break;
-            case "tm":
-                start = startOfMonth(now);
-                end = now;
-                break;
-            case "lm":
-                start = startOfMonth(now);
-                start = subMonths(start, 1);
-                end = endOfMonth(start);
-                break;
-        }
-        let formattedStart = dateformat(start, dateMask);
-        let formattedEnd = dateformat(end, dateMask);
-        log.debug("using start:", formattedStart, "and end:", formattedEnd);
-
-        let timeStart = parseInt(start.getTime());
-        let timeEnd = parseInt(end.getTime());
+        let [timeStart, timeEnd, formattedStart, formattedEnd] = getStartAndEndFromInterval(interval, false);
 
         let data = {};
         for (const charger of config.charger) {

@@ -1,4 +1,5 @@
 /node_modules/
+/out/
 .env
 config_influx.json
 config_vrm.json

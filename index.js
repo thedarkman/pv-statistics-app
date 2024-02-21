@@ -10,11 +10,11 @@ import "dotenv/config";
 import config from "./config.json" assert { type: "json" };
 
 const log = new Logger("app");
-log.debug("message from the logger");
 
 const apiType = config.type || "vrm";
 const api = apiType === "vrm" ? new VictronApi(process.env.VRM_ID_USER, process.env.VRM_ACCESS_TOKEN) : new InfluxApi();
 const port = process.env.PORT || 8080;
+
 const app = express();
 const contextPath = process.env.CONTEXT_PATH || "";
 log.debug("context path is set to:", contextPath);
@@ -38,22 +38,16 @@ function shutDown() {
 process.on("SIGTERM", shutDown);
 process.on("SIGINT", shutDown);
 
+app.set("view engine", "ejs");
 app.disable("x-powered-by");
 app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(contextPath, express.static("public"));
-app.use(
-    express.raw({
-        type: "*/*"
-    })
-);
+app.use(express.raw({ type: "*/*" }));
 
 app.use(
     session({
         secret: process.env.SESSION_SECRET,
-        cookie: {
-            path: contextPath,
-            httpOnly: true
-        },
+        cookie: { path: contextPath, httpOnly: true },
         resave: false,
         saveUninitialized: true
     })
@@ -63,10 +57,10 @@ if (credentials) {
     app.use(auth({ users, contextPath }));
 }
 
-// default entry point
+// default entry point - rendered via ejs template
 app.get([contextPath, contextPath + "/"], (req, res) => {
-    res.sendFile("app.html", {
-        root: "./public"
+    res.render("app", {
+        title: config.title
     });
 });
 
