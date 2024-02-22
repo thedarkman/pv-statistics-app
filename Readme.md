@@ -112,7 +112,7 @@ Example config with `query`:
         "instance": 0,
         "database": "solar",
         "name": "Balkonkraftwerk",
-        "query": "SELECT max(\"today\") FROM \"power\" WHERE $timeFIlter GROUP BY time(1d)"
+        "query": "SELECT max(\"today\") FROM \"power\" WHERE $timeFilter GROUP BY time(1d)"
       }
     ]
   }
