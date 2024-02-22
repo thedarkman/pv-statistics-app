@@ -11,7 +11,7 @@ import { encode } from "html-entities";
 import { getStartAndEndFromInterval, dateMask } from "./helper.js";
 import config from "./config.json" assert { type: "json" };
 
-const log = new Logger("api");
+const log = new Logger("vrm");
 
 const baseUrl = "https://vrmapi.victronenergy.com/v2";
 const authUrl = `${baseUrl}/auth/login`;
@@ -45,12 +45,14 @@ function groupSeriesByDay(series) {
 class VictronApi {
     idUser;
     token;
+    config;
     accessToken;
 
-    constructor(idUser, accessToken) {
+    constructor(config, idUser, accessToken) {
+        this.config = config;
         this.idUser = idUser;
         this.accessToken = accessToken;
-        log.debug("site id from config:", config.idSite);
+        log.debug("site id from config:", this.config.idSite);
     }
 
     async login(username, password) {
@@ -96,7 +98,7 @@ class VictronApi {
     async fetchSystemOverview() {
         if (!this.accessToken) return;
 
-        const systemUrl = `${baseUrl}/installations/${config.idSite}/system-overview`;
+        const systemUrl = `${baseUrl}/installations/${this.config.idSite}/system-overview`;
         let options = {
             method: "GET",
             headers: {
@@ -125,8 +127,8 @@ class VictronApi {
 
         let data = [];
         data.push(dateformat(new Date(), dateMask));
-        for (const charger of config.charger) {
-            const solarStatusUrl = `${baseUrl}/installations/${config.idSite}/widgets/SolarChargerSummary?instance=${charger.instance}`;
+        for (const charger of this.config.charger) {
+            const solarStatusUrl = `${baseUrl}/installations/${this.config.idSite}/widgets/SolarChargerSummary?instance=${charger.instance}`;
             let response = await fetch(solarStatusUrl, options);
             let chargerData = await response.json();
             // log.debug(`all charger data for ${charger.name} (instance=${charger.instance}):`, chargerData);
@@ -147,8 +149,8 @@ class VictronApi {
         let [timeStart, timeEnd, formattedStart, formattedEnd] = getStartAndEndFromInterval(interval, true);
 
         let data = {};
-        for (const charger of config.charger) {
-            let statsUrl = `${baseUrl}/installations/${config.idSite}/widgets/Graph?instance=${charger.instance}&pointsPerPixel=1&useMinMax=0&start=${timeStart}&end=${timeEnd}&attributeIds[]=94`;
+        for (const charger of this.config.charger) {
+            let statsUrl = `${baseUrl}/installations/${this.config.idSite}/widgets/Graph?instance=${charger.instance}&pointsPerPixel=1&useMinMax=0&start=${timeStart}&end=${timeEnd}&attributeIds[]=94`;
             if (charger.mppts > 1) {
                 statsUrl += "&attributeIds[]=703&attributeIds[]=704";
             }

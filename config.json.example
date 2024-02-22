@@ -1,0 +1,43 @@
+{
+  "title": "<page-title>",
+  "apis": [
+    {
+      "type": "influx",
+      "host": "<host-or-ip>",
+      "port": <port-or-remove-for-default-8086>,
+      "charger": [
+        {
+          "comment": "this will assume that property-name are the kWh of today"
+          "instance": <unique-id-over-all-entities>,
+          "database": "<database-name>",
+          "bucket": "<complete-bucket-name>",
+          "name": "<readable-name>",
+          "property": "<property-name>"
+        },
+        {
+          "comment": "this version will only replace $timeFilter in your influx query"
+          "name": "<readable-name>",
+          "instance": <unique-id-over-all-entities>,
+          "database": "<database-name>",
+          "query": "<complete-influxQL-query-with-timeFilter-placeholder>"
+        }
+      ]
+    },
+    {
+      "type": "vrm",
+      "idSite": <site-id-from-portal-url>,
+      "charger": [
+        {
+          "instance": <unique-id-from-device-list>,
+          "name": "<readable-name>",
+          "mppts": 1
+        },
+        {
+          "instance": <unique-id-from-device-list>,
+          "name": "<readable-name>",
+          "mppts": 2
+        }
+      ]
+    }
+  ]
+}

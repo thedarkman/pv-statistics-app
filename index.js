@@ -11,8 +11,19 @@ import config from "./config.json" assert { type: "json" };
 
 const log = new Logger("app");
 
-const apiType = config.type || "vrm";
-const api = apiType === "vrm" ? new VictronApi(process.env.VRM_ID_USER, process.env.VRM_ACCESS_TOKEN) : new InfluxApi();
+// validate config
+
+// create api connections
+const apis = [];
+config.apis.forEach((api, i) => {
+    const apiType = api.type || "vrm";
+    apis.push(
+        apiType === "vrm"
+            ? new VictronApi(api, process.env.VRM_ID_USER, process.env.VRM_ACCESS_TOKEN)
+            : new InfluxApi(api)
+    );
+});
+
 const port = process.env.PORT || 8080;
 
 const app = express();
@@ -74,11 +85,34 @@ app.get(contextPath + "/state", (req, res) => {
     const nextUpdate = state.lastUpdate === null ? 0 : state.lastUpdate + updateInterval;
     log.debug("next update after:", state.lastUpdate === null ? "now" : new Date(nextUpdate));
     if (state.lastUpdate === null || nextUpdate < new Date().getTime()) {
-        api.fetchStats(interval)
-            .then((data) => {
-                state.rows = data.rows;
-                state.timeframe = data.timeframe;
-                state.lastUpdate = new Date().getTime();
+        if (state.rows === undefined) state.rows = {};
+        let promises = [];
+        // collect API calls as promise, so we can process them all at once
+        for (const api of apis) {
+            promises.push(api.fetchStats(interval));
+        }
+        let timeDataAdded = false;
+        Promise.all(promises)
+            .then((responses) => {
+                for (let data of responses) {
+                    for (let day of Object.keys(data.rows)) {
+                        if (state.rows[day] === undefined) {
+                            state.rows[day] = data.rows[day];
+                        } else {
+                            for (let id of Object.keys(data.rows[day])) {
+                                if (state.rows[day][id] === undefined) state.rows[day][id] = data.rows[day][id];
+                                else {
+                                    data.rows[day][id].forEach((o) => state.rows[day][id].push(o));
+                                }
+                            }
+                        }
+                    }
+                    if (!timeDataAdded) {
+                        state.timeframe = responses.timeframe;
+                        state.lastUpdate = new Date().getTime();
+                        timeDataAdded = true;
+                    }
+                }
                 res.status(200).type("application/json").send(JSON.stringify(state));
             })
             .catch((error) => log.error(error));

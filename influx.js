@@ -11,21 +11,31 @@ import config from "./config.json" assert { type: "json" };
 
 const log = new Logger("influx");
 
-const port = config.port || 8086;
-const baseUrl = `http://${config.host}:${port}/query`;
-
 class InfluxApi {
-    constructor() {}
+    config;
+    baseUrl;
+
+    constructor(config) {
+        this.config = config;
+        let port = config.port || 8086;
+        this.baseUrl = `http://${config.host}:${port}/query`;
+    }
 
     async fetchStats(interval) {
         let [timeStart, timeEnd, formattedStart, formattedEnd] = getStartAndEndFromInterval(interval, false);
 
         let data = {};
-        for (const charger of config.charger) {
-            let query = encodeURI(
-                `SELECT max("${charger.property}") FROM "${charger.bucket}" WHERE time > ${timeStart}ms and time < ${timeEnd}ms GROUP BY time(1d)`
-            );
-            let statsUrl = `${baseUrl}?db=${charger.database}&q=${query}&epoch=ms`;
+        for (const charger of this.config.charger) {
+            let query;
+            let timeFilter = `time > ${timeStart}ms and time < ${timeEnd}ms`;
+            if (charger["query"] === undefined) {
+                query = encodeURI(
+                    `SELECT max("${charger.property}") FROM "${charger.bucket}" WHERE ${timeFilter} GROUP BY time(1d)`
+                );
+            } else {
+                query = encodeURI(charger.query.replace(/\$timeFilter/, timeFilter));
+            }
+            let statsUrl = `${this.baseUrl}?db=${charger.database}&q=${query}&epoch=ms`;
             log.debug("request url for stats:", statsUrl);
             let options = {
                 method: "GET",

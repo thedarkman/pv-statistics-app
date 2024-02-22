@@ -18,24 +18,22 @@ function processData(data) {
     let gainSumCell = hRow.insertCell();
     gainSumCell.innerHTML = "Tagesertrag";
 
-    let firstKey = Object.keys(data.rows)[0];
-    let first = data.rows[firstKey];
-    for (let key of Object.keys(first)) {
-        let chargerArray = first[key]; // array of objects
+    let keys = Object.keys(data.rows);
+    let lastKey = keys[keys.length - 1];
+    let last = data.rows[lastKey];
+    for (let key of Object.keys(last)) {
+        let chargerArray = last[key]; // array of objects
         let id = parseInt(key);
         for (let charger of chargerArray) {
             let c = hRow.insertCell();
             c.scope = "col";
             c.innerHTML =
-                id > 100
-                    ? `${charger.name}<br><span class="smaller">Tracker ${
-                          id - 702
-                      }</span>`
-                    : charger.name;
+                id > 100 ? `${charger.name}<br><span class="smaller">Tracker ${id - 702}</span>` : charger.name;
         }
     }
 
     let totals = {};
+    // data in table body
     let tBody = table.createTBody();
     for (const key of Object.keys(data.rows)) {
         let tableRow = tBody.insertRow();
@@ -54,10 +52,8 @@ function processData(data) {
             for (const charger of data.rows[key][id]) {
                 let chargerCell = tableRow.insertCell();
                 let kwh = parseFloat(charger.value);
-                if (totals[id][charger.instance] === undefined)
-                    totals[id][charger.instance] = 0;
-                totals[id][charger.instance] =
-                    totals[id][charger.instance] + kwh;
+                if (totals[id][charger.instance] === undefined) totals[id][charger.instance] = 0;
+                totals[id][charger.instance] = totals[id][charger.instance] + kwh;
                 chargerCell.classList.add("kwh");
                 chargerCell.style.padding = "2px";
                 chargerCell.innerHTML = kwh.toFixed(2) + " kWh";
@@ -93,9 +89,7 @@ function processData(data) {
     gainCell.colSpan = 1;
     gainCell.style.fontWeight = "bold";
     let infoCell = updateRow.insertCell();
-    infoCell.innerHTML = `Letztes update: ${new Date(
-        data.lastUpdate
-    ).toLocaleString()}`;
+    infoCell.innerHTML = `Letztes update: ${new Date(data.lastUpdate).toLocaleString()}`;
     infoCell.colSpan = tHead.childNodes[0].childElementCount - 2;
     infoCell.classList.add("right");
 }
@@ -134,9 +128,7 @@ function copyToClipboard(h) {
     if (tHead === undefined || tHead === null) {
         return;
     }
-    console.log(
-        "will copy table data to clipboard with" + (h ? "" : "out") + " headers"
-    );
+    console.log("will copy table data to clipboard with" + (h ? "" : "out") + " headers");
 
     if (h) {
         let headers = document.querySelector("thead").childNodes;
@@ -159,8 +151,7 @@ function copyToClipboard(h) {
     }
     // console.log(text);
     navigator.clipboard.writeText(text).then(() => {
-        document.querySelector("#liveToast .toast-body").innerHTML =
-            "Daten in die Zwischenablage kopiert.";
+        document.querySelector("#liveToast .toast-body").innerHTML = "Daten in die Zwischenablage kopiert.";
         let toast = new bootstrap.Toast(document.querySelector("#liveToast"));
         toast.show();
     });

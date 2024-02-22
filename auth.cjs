@@ -39,8 +39,10 @@ module.exports = (options) => {
             res.set('WWW-Authenticate', 'Basic realm="Access to staging site"');
             res.sendStatus(401);
         } else {
-            req.session.challengeShown = false;
-            req.session.challangeCount = 0;
+            if (req.session) {
+                req.session.challengeShown = false;
+                req.session.challangeCount = 0;
+            }
             log.warn('Forbidden')
             res.status(403).sendFile('unauthorized.html', {root: './public'});
         }
