@@ -94,6 +94,7 @@ app.get(contextPath + "/state", (req, res) => {
         let timeDataAdded = false;
         Promise.all(promises)
             .then((responses) => {
+                state.rows = {}; // clear data for update
                 for (let data of responses) {
                     for (let day of Object.keys(data.rows)) {
                         if (state.rows[day] === undefined) {
