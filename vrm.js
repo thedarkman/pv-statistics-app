@@ -164,28 +164,32 @@ class VictronApi {
                     "x-authorization": `Token ${this.accessToken}`
                 }
             };
-            let response = await fetch(statsUrl, options);
-            let stats = await response.json();
-            //log.debug("complete stats:", stats);
-            let chargerData = stats.records.data;
-            let encodedName = encode(charger.name, { mode: "nonAscii" });
+            try {
+                let response = await fetch(statsUrl, options);
+                let stats = await response.json();
+                //log.debug("complete stats:", stats);
+                let chargerData = stats.records.data;
+                let encodedName = encode(charger.name, {mode: "nonAscii"});
 
-            for (let id of ["94", "703", "704"]) {
-                if (chargerData[id] === undefined || chargerData[id].length === 0) continue;
-                let main = groupSeriesByDay(chargerData[id]);
-                for (let day of Object.keys(main)) {
-                    if (data[day] === undefined) {
-                        data[day] = {};
+                for (let id of ["94", "703", "704"]) {
+                    if (chargerData[id] === undefined || chargerData[id].length === 0) continue;
+                    let main = groupSeriesByDay(chargerData[id]);
+                    for (let day of Object.keys(main)) {
+                        if (data[day] === undefined) {
+                            data[day] = {};
+                        }
+                        if (data[day][id] === undefined) {
+                            data[day][id] = [];
+                        }
+                        data[day][id].push({
+                            instance: charger.instance,
+                            name: encodedName,
+                            value: main[day].value
+                        });
                     }
-                    if (data[day][id] === undefined) {
-                        data[day][id] = [];
-                    }
-                    data[day][id].push({
-                        instance: charger.instance,
-                        name: encodedName,
-                        value: main[day].value
-                    });
                 }
+            } catch (error) {
+                log.error('error occurred:', error);
             }
         }
         return {

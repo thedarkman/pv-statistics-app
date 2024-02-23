@@ -109,7 +109,7 @@ app.get(contextPath + "/state", (req, res) => {
                         }
                     }
                     if (!timeDataAdded) {
-                        state.timeframe = responses.timeframe;
+                        state.timeframe = data.timeframe;
                         state.lastUpdate = new Date().getTime();
                         timeDataAdded = true;
                     }
