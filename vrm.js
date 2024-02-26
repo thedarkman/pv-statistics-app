@@ -3,17 +3,17 @@
  *
  * Documentation see https://vrm-api-docs.victronenergy.com/#/
  */
-import Logger from "./logging.cjs";
-import fetch from "node-fetch";
-import dateformat from "dateformat";
-import { encode } from "html-entities";
+import Logger from './logging.cjs';
+import fetch from 'node-fetch';
+import dateformat from 'dateformat';
+import { encode } from 'html-entities';
 
-import { getStartAndEndFromInterval, dateMask } from "./helper.js";
-import config from "./config.json" assert { type: "json" };
+import { getStartAndEndFromInterval, dateMask } from './helper.js';
+import config from './config.json' assert { type: 'json' };
 
-const log = new Logger("vrm");
+const log = new Logger('vrm');
 
-const baseUrl = "https://vrmapi.victronenergy.com/v2";
+const baseUrl = 'https://vrmapi.victronenergy.com/v2';
 const authUrl = `${baseUrl}/auth/login`;
 
 function valueFromSeries(series) {
@@ -33,10 +33,10 @@ function groupSeriesByDay(series) {
             grouped[day] = {};
         }
 
-        if (grouped[day]["value"] === null) return;
+        if (grouped[day]['value'] === null) return;
 
-        if (grouped[day]["value"] === undefined || grouped[day]["value"] < current[1]) {
-            grouped[day]["value"] = current[1];
+        if (grouped[day]['value'] === undefined || grouped[day]['value'] < current[1]) {
+            grouped[day]['value'] = current[1];
         }
     });
     return grouped;
@@ -52,7 +52,7 @@ class VictronApi {
         this.config = config;
         this.idUser = idUser;
         this.accessToken = accessToken;
-        log.debug("site id from config:", this.config.idSite);
+        log.debug('site id from config:', this.config.idSite);
     }
 
     async login(username, password) {
@@ -64,14 +64,14 @@ class VictronApi {
         };
 
         let response = await fetch(authUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(reqData)
         });
         let data = await response.json();
         this.token = data.token;
         this.idUser = data.idUser;
-        log.debug("received valid data for user:", `idUser: ${this.idUser}`, `token: ${this.token}`);
+        log.debug('received valid data for user:', `idUser: ${this.idUser}`, `token: ${this.token}`);
     }
 
     async fetchInstallations() {
@@ -81,17 +81,17 @@ class VictronApi {
         const installUrl = `${baseUrl}/users/${this.idUser}/installations`;
 
         let options = {
-            method: "GET",
+            method: 'GET',
             headers: {
-                "Content-Type": "application/json",
-                "x-authorization": `Token ${this.accessToken}`
+                'Content-Type': 'application/json',
+                'x-authorization': `Token ${this.accessToken}`
             }
         };
 
         let response = await fetch(installUrl, options);
         let data = await response.json();
 
-        log.debug("received data:", data);
+        log.debug('received data:', data);
         return data.records;
     }
 
@@ -100,16 +100,16 @@ class VictronApi {
 
         const systemUrl = `${baseUrl}/installations/${this.config.idSite}/system-overview`;
         let options = {
-            method: "GET",
+            method: 'GET',
             headers: {
-                "Content-Type": "application/json",
-                "x-authorization": `Token ${this.accessToken}`
+                'Content-Type': 'application/json',
+                'x-authorization': `Token ${this.accessToken}`
             }
         };
         let response = await fetch(systemUrl, options);
         let data = await response.json();
 
-        log.debug("received system overview data:", data);
+        log.debug('received system overview data:', data);
         return data.records;
     }
 
@@ -118,10 +118,10 @@ class VictronApi {
         if (!this.accessToken) return;
 
         let options = {
-            method: "GET",
+            method: 'GET',
             headers: {
-                "Content-Type": "application/json",
-                "x-authorization": `Token ${this.accessToken}`
+                'Content-Type': 'application/json',
+                'x-authorization': `Token ${this.accessToken}`
             }
         };
 
@@ -132,9 +132,9 @@ class VictronApi {
             let response = await fetch(solarStatusUrl, options);
             let chargerData = await response.json();
             // log.debug(`all charger data for ${charger.name} (instance=${charger.instance}):`, chargerData);
-            let production = parseFloat(chargerData.records.data["94"].value);
+            let production = parseFloat(chargerData.records.data['94'].value);
             data.push({
-                name: encode(charger.name, { mode: "nonAscii" }),
+                name: encode(charger.name, { mode: 'nonAscii' }),
                 production
             });
             // log.debug(`data for charger '${charger.name}' (instance=${charger.instance}): ${production} kWh`);
@@ -152,16 +152,16 @@ class VictronApi {
         for (const charger of this.config.charger) {
             let statsUrl = `${baseUrl}/installations/${this.config.idSite}/widgets/Graph?instance=${charger.instance}&pointsPerPixel=1&useMinMax=0&start=${timeStart}&end=${timeEnd}&attributeIds[]=94`;
             if (charger.mppts > 1) {
-                statsUrl += "&attributeIds[]=703&attributeIds[]=704";
+                statsUrl += '&attributeIds[]=703&attributeIds[]=704';
             }
 
-            log.debug("request url for stats:", statsUrl);
+            log.debug('request url for stats:', statsUrl);
             let options = {
-                method: "GET",
+                method: 'GET',
                 headers: {
-                    "Content-Type": "application/json",
-                    Accept: "application/json, text/plain, */*",
-                    "x-authorization": `Token ${this.accessToken}`
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json, text/plain, */*',
+                    'x-authorization': `Token ${this.accessToken}`
                 }
             };
             try {
@@ -169,9 +169,9 @@ class VictronApi {
                 let stats = await response.json();
                 //log.debug("complete stats:", stats);
                 let chargerData = stats.records.data;
-                let encodedName = encode(charger.name, {mode: "nonAscii"});
+                let encodedName = encode(charger.name, { mode: 'nonAscii' });
 
-                for (let id of ["94", "703", "704"]) {
+                for (let id of ['94', '703', '704']) {
                     if (chargerData[id] === undefined || chargerData[id].length === 0) continue;
                     let main = groupSeriesByDay(chargerData[id]);
                     for (let day of Object.keys(main)) {
