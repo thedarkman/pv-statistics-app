@@ -7,6 +7,7 @@ import Logger from './logging.cjs';
 import fetch from 'node-fetch';
 import dateformat from 'dateformat';
 import { encode } from 'html-entities';
+import { toZonedTime } from 'date-fns-tz';
 
 import { getStartAndEndFromInterval, dateMask } from './helper.js';
 import config from './config.json' assert { type: 'json' };
@@ -26,17 +27,18 @@ function groupSeriesByDay(series) {
     let grouped = {};
     series.reduce((acc, current) => {
         if (current.length === 0) return;
+        if (current[1] === 0) return; // remove 0 values
         let timestamp = current[0] * 1000;
-        let date = new Date(timestamp);
-        let day = dateformat(date, dateMask);
+        let date = toZonedTime(timestamp, 'Europe/Berlin');
+        let day = dateformat(date, dateMask, { timeZone: 'Europe/Berlin' });
         if (grouped[day] === undefined) {
             grouped[day] = {};
         }
 
         if (grouped[day]['value'] === null) return;
 
-        if (grouped[day]['value'] === undefined || grouped[day]['value'] < current[1]) {
-            grouped[day]['value'] = current[1];
+        if (grouped[day]['value'] === undefined || grouped[day]['value'] < parseFloat(current[1])) {
+            grouped[day]['value'] = parseFloat(current[1]);
         }
     });
     return grouped;

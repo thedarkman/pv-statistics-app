@@ -10,6 +10,7 @@ import {
     subMonths,
     subYears
 } from 'date-fns';
+import { fromZonedTime } from 'date-fns-tz';
 import Logger from './logging.cjs';
 
 const log = new Logger('helper');
@@ -21,7 +22,7 @@ const getStartAndEndFromInterval = (interval, seconds) => {
     // https://date-fns.org/v3.3.1/docs/startOfWeek
     // interval: tw | lw | tm | lm
 
-    let now = new Date();
+    let now = fromZonedTime(new Date(), 'Europe/Berlin');
 
     let start, end;
     switch (interval) {

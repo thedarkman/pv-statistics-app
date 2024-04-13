@@ -30,7 +30,7 @@ class InfluxApi {
             let timeFilter = `time > ${timeStart}ms and time < ${timeEnd}ms`;
             if (charger['query'] === undefined) {
                 query = encodeURI(
-                    `SELECT max("${charger.property}") FROM "${charger.bucket}" WHERE ${timeFilter} GROUP BY time (1d)`
+                    `SELECT max("${charger.property}") FROM "${charger.bucket}" WHERE ${timeFilter} GROUP BY time(1d)`
                 );
             } else {
                 query = encodeURI(charger.query.replace(/\$timeFilter/, timeFilter));
