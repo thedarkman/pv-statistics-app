@@ -155,6 +155,8 @@ class VictronApi {
             let statsUrl = `${baseUrl}/installations/${this.config.idSite}/widgets/Graph?instance=${charger.instance}&pointsPerPixel=1&useMinMax=0&start=${timeStart}&end=${timeEnd}&attributeIds[]=94`;
             if (charger.mppts > 1) {
                 statsUrl += '&attributeIds[]=703&attributeIds[]=704';
+		if(charger.mppts === 4)
+		    statsUrl += '&attributeIds[]=705&attributeIds[]=706';
             }
 
             log.debug('request url for stats:', statsUrl);
@@ -173,7 +175,7 @@ class VictronApi {
                 let chargerData = stats.records.data;
                 let encodedName = encode(charger.name, { mode: 'nonAscii' });
 
-                for (let id of ['94', '703', '704']) {
+                for (let id of ['94', '703', '704', '705', '706']) {
                     if (chargerData[id] === undefined || chargerData[id].length === 0) continue;
                     let main = groupSeriesByDay(chargerData[id]);
                     for (let day of Object.keys(main)) {
