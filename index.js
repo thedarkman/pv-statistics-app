@@ -7,7 +7,7 @@ import cookieParser from 'cookie-parser';
 import session from 'express-session';
 
 import 'dotenv/config';
-import config from './config.json' assert { type: 'json' };
+import config from './config.json' with {type: 'json'};
 
 const log = new Logger('app');
 
@@ -53,19 +53,19 @@ app.set('view engine', 'ejs');
 app.disable('x-powered-by');
 app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(contextPath, express.static('public'));
-app.use(express.raw({ type: '*/*' }));
+app.use(express.raw({type: '*/*'}));
 
 app.use(
     session({
         secret: process.env.SESSION_SECRET,
-        cookie: { path: contextPath, httpOnly: true },
+        cookie: {path: contextPath, httpOnly: true},
         resave: false,
         saveUninitialized: true
     })
 );
 
 if (credentials) {
-    app.use(auth({ users, contextPath }));
+    app.use(auth({users, contextPath}));
 }
 
 // default entry point - rendered via ejs template
@@ -78,7 +78,7 @@ app.get([contextPath, contextPath + '/'], (req, res) => {
 app.get(contextPath + '/state', (req, res) => {
     const interval = req.query.i;
     log.debug('state request for interval:', interval);
-    if (globalState[interval] === undefined) globalState[interval] = { lastUpdate: null };
+    if (globalState[interval] === undefined) globalState[interval] = {lastUpdate: null};
 
     let state = globalState[interval];
     log.debug('lastUpdate of stats was:', state.lastUpdate === null ? 'null' : new Date(state.lastUpdate));

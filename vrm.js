@@ -9,8 +9,7 @@ import dateformat from 'dateformat';
 import { encode } from 'html-entities';
 import { toZonedTime } from 'date-fns-tz';
 
-import { getStartAndEndFromInterval, dateMask } from './helper.js';
-import config from './config.json' assert { type: 'json' };
+import { dateMask, getStartAndEndFromInterval } from './helper.js';
 
 const log = new Logger('vrm');
 
@@ -19,8 +18,7 @@ const authUrl = `${baseUrl}/auth/login`;
 
 function valueFromSeries(series) {
     let last = series[series.length - 1];
-    let kwh = last[1];
-    return kwh;
+    return last[1];
 }
 
 function groupSeriesByDay(series) {

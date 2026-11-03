@@ -7,7 +7,6 @@ import dateformat from 'dateformat';
 import { encode } from 'html-entities';
 
 import { getStartAndEndFromInterval, dateMask } from './helper.js';
-import config from './config.json' assert { type: 'json' };
 
 const log = new Logger('influx');
 
